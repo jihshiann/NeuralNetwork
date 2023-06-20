@@ -9,6 +9,7 @@
 
 
 import numpy as np
+import math
 
 # 數據數量
 data_num = 12345
@@ -124,4 +125,30 @@ def predict(inputs):
 
 # FUN: 目標函數
 def error_function(inputs, expecteds):
+    #1/2*error^2
     return 0.5*((expecteds-predict(inputs)**2).sum())
+
+## 批次執行
+batch = 100
+for num_epochs in range(1, num_epochs+1):
+    # 隨機打亂訓練資料的索引
+    p = np.random.permutation(len(inputs))
+    
+    # 遍歷每個batch
+    for i in range(math.ceil(len(inputs)/batch)):
+        # 取出當前batch的索引範圍
+        indice = p[i*batch:(i+1)*batch]
+        
+        # 根據索引範圍從原始資料中取出對應的batch資料
+        inputs_batch = inputs[indice]
+        expecteds_batch = expecteds[indice]
+        
+        # 使用當前batch資料進行模型訓練
+        train(inputs_batch, expecteds_batch)
+
+    # 每1000個epoch輸出一次訓練誤差
+    if num_epochs % 1000 == 0:
+        log = 'error = {8.4f} ({:5d}th epoch)'
+        # 計算訓練資料上的誤差並輸出到控制台
+        print(log.format(error_function(inputs, expecteds), num_epochs))
+
