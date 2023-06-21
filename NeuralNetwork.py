@@ -15,23 +15,30 @@ import math
 data_num = 12345
 # 輸入值: (四位數, 四位數)陣列
 inputs = np.random.randint(1000, 9999, size=(data_num, 2))
+inputs = inputs.reshape(-1, 2)  # 將輸入數據轉換為二維陣列
 # 輸出值: 四位數 + 四位數 陣列
 expecteds = np.sum(inputs, axis=1)
+
 # FUN: 正規化
 def standardize(numArray):
     # 正規化至0到1之間
-    numArr_std = (numArray - np.min(numArray)) / (np.max(numArray) - np.min(numArray))
-    return numArr_std
+    min_val = np.min(numArray)
+    range_val = np.max(numArray) - min_val
+    numArr_std = (numArray - min_val) / range_val
+    return numArr_std, min_val, range_val
+# FUN: 反正規化
+def unstandardize(numArray, min_val, range_val):
+    return numArray * range_val + min_val
 
 
 ## 類神經網路
 # 隱藏層神經元數
 neuron_num = np.random.randint(2,9)
-neuron_num = 3
 ## 權重與偏差
 weights_L1 = np.random.randn(2, neuron_num)
 weights_L2 = np.random.randn(neuron_num, 1)
-bias = np.random.randn(neuron_num)
+bias_L1 = np.random.randn(neuron_num)
+bias_L2 = np.random.randn(1)
 # FUN: activation function
 # tanh(x) = (e^x - e^(-x)) / (e^x + e^(-x))
 # https://www.baeldung.com/cs/sigmoid-vs-tanh-functions
@@ -41,15 +48,15 @@ def tangentSigmoid(inputs):
 
 # FUN: 正向傳播
 def forward(inputs):
-     # 第一層
-    weighteds_L1 = np.dot(inputs, weights_L1) + bias
-    computeds = tangentSigmoid(weighteds_L1)
-    
+    # 第一層
+    weighteds_L1 = np.dot(inputs, weights_L1) + bias_L1  
+    computeds_L1 = tangentSigmoid(weighteds_L1)
+
     # 第二層
-    weighteds_L2 = np.dot(computeds, weights_L2)
-    outputs = tangentSigmoid(weighteds_L2)
-    
-    return outputs
+    weighteds_L2 = np.dot(computeds_L1, weights_L2) + bias_L2 
+    computeds_L2 = weighteds_L2
+
+    return weighteds_L1, computeds_L1, weighteds_L2, computeds_L2
 
 ## 反向傳播
 # FUN: Tangent Sigmoid 微分
@@ -58,97 +65,102 @@ def dTangentSigmoid(inputs):
     return outputs
 # FUN: 計算輸出層梯度
 def delta_output(weighteds, expecteds):
-    result = (tangentSigmoid(weighteds) -expecteds) * dTangentSigmoid(weighteds)
+    result = (tangentSigmoid(weighteds) - expecteds.reshape(-1, 1)) * dTangentSigmoid(weighteds)
     return result
 # FUN: 計算隱藏層梯度
 def delta_hidden(weighteds, next_weights, next_deltas):
     result = np.dot(next_deltas, next_weights.T) * dTangentSigmoid(weighteds)
     return result
 # FUN: 倒傳遞
-def backward(inputs, expecteds, weighteds_L1, weighteds_L2):
+def backward(expecteds, weighteds_L2, weighteds_L1):
     # 計算輸出層梯度
     delta_L2 = delta_output(weighteds_L2, expecteds)
-    
+
     # 計算隱藏層梯度
     delta_L1 = delta_hidden(weighteds_L1, weights_L2, delta_L2)
-    
+
     return delta_L2, delta_L1
+
 
 ## 更新
 learning_rate = 0.001
-
 # FUN: 目標函數對權重微分
 def deweight(delta, inputs):
-    return np.dot(delta.T, inputs)
+    return np.dot(inputs.T, delta)
 
 # FUN: 目標函數對偏差微分
 def debias(delta):
     return np.mean(delta, axis=0)
 
 # FUN: 參數更新
-def update_paras(delta_L2, delta_L1, inputs, weighteds_L1):
+def update_paras(delta_L2, computeds_L1, delta_L1, inputs):
+    global weights_L2, weights_L1, bias_L1, bias_L2  # 更新全局變量列表
     # 更新第二層權重
-    dW2 = deweight(delta_L2, weighteds_L1)
-    weights_L2 -= learning_rate * dW2
+    # 計算 dW2
+    delta_L2_repeated = np.repeat(delta_L2, neuron_num, axis=1)
+    dW2 = np.sum(delta_L2_repeated * computeds_L1, axis=0)
+
+    # 更新 weights_L2
+    weights_L2 -= learning_rate * dW2.reshape(weights_L2.shape)
 
     # 更新第一層權重
     dW1 = deweight(delta_L1, inputs)
     weights_L1 -= learning_rate * dW1
 
-    # 更新偏差
-    dB = debias(delta_L2)
-    bias -= learning_rate * dB
+    # 更新第二層偏差
+    dB2 = debias(delta_L2)
+    bias_L2 -= learning_rate * dB2
+
+    # 更新第一層偏差
+    dB1 = debias(delta_L1)
+    bias_L1 -= learning_rate * dB1
     
 ## 學習
-num_epochs = 300
-def train(inputs, expecteds, weights_L1, weights_L2, bias, num_epochs):
-    errors = []
-    for epoch in range(num_epochs):
-        # 正向傳播
-        outputs = forward(inputs)
+def train(inputs, expecteds):
+    # 正向傳播
+    weighteds_L1, computeds_L1, weighteds_L2, computeds_L2 = forward(inputs)
         
-        # 計算誤差
-        error = np.mean(np.abs(outputs - expecteds))
-        errors.append(error)
+    # 反向傳播
+    delta_L2, delta_L1 = backward(expecteds, weighteds_L2, weighteds_L1)
         
-        # 反向傳播
-        delta_L2, delta_L1 = backward(inputs, expecteds, weights_L1, weights_L2)
-        
-        # 參數更新
-        weights_L1, weights_L2, bias = update_paras(delta_L2, delta_L1, inputs, weights_L1)
+    # 參數更新
+    update_paras(delta_L2, computeds_L1, delta_L1, inputs)
 
 ## 執行
 # FUN: 預測
 def predict(inputs):
-    outputs = forward(inputs)
-    return outputs
+    weighteds_L1, computeds_L1, weighteds_L2, computeds_L2 = forward(inputs)
+    return computeds_L2
 
 # FUN: 目標函數
 def error_function(inputs, expecteds):
-    #1/2*error^2
-    return 0.5*((expecteds-predict(inputs)**2).sum())
+    # 1/2*error^2
+    return 0.5 * ((expecteds - predict(inputs)) ** 2).sum()
 
 ## 批次執行
 batch = 100
-for num_epochs in range(1, num_epochs+1):
+epoch = 10000
+std_inputs, min_inputs, range_inputs = standardize(inputs)
+std_expecteds, min_expecteds, range_expecteds = standardize(expecteds)
+for e in range(1, epoch+1):
     # 隨機打亂訓練資料的索引
-    p = np.random.permutation(len(inputs))
+    p = np.random.permutation(len(std_inputs))
     
     # 遍歷每個batch
-    for i in range(math.ceil(len(inputs)/batch)):
+    for i in range(math.ceil(len(std_inputs)/batch)):
         # 取出當前batch的索引範圍
         indice = p[i*batch:(i+1)*batch]
         
         # 根據索引範圍從原始資料中取出對應的batch資料
-        inputs_batch = inputs[indice]
-        expecteds_batch = expecteds[indice]
+        inputs_batch = std_inputs[indice]
+        expecteds_batch = std_expecteds[indice]
         
         # 使用當前batch資料進行模型訓練
         train(inputs_batch, expecteds_batch)
 
-    # 每1000個epoch輸出一次訓練誤差
-    if num_epochs % 1000 == 0:
-        log = 'error = {8.4f} ({:5d}th epoch)'
+    # 每10個epoch輸出一次訓練誤差
+    if e % 100 == 0:
+        log = 'error = {:8.4f} ({:5d}th epoch)'
         # 計算訓練資料上的誤差並輸出到控制台
-        print(log.format(error_function(inputs, expecteds), num_epochs))
+        print(log.format(error_function(std_inputs, std_expecteds), e))
 
