@@ -37,31 +37,31 @@ def unstandardize(numArray, min_val, range_val):
 ## FUN: activation function
 # tanh(x) = (e^x - e^(-x)) / (e^x + e^(-x))
 # https://www.baeldung.com/cs/sigmoid-vs-tanh-functions
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+def TangentSigmoid(x):
+    return np.tanh(x)
 
 # FUN: 正向傳播
 def forward(X0):
     # 第一層
     Z1 = np.dot(X0, W1.T) + b1
-    X1 = sigmoid(Z1)
+    X1 = TangentSigmoid(Z1)
 
     # 第二層
     Z2 = np.dot(X1, W2.T) + b2
-    X2 = sigmoid(Z2)
+    X2 = TangentSigmoid(Z2)
 
     return Z1, X1, Z2, X2
 
 ## 反向傳播
 # FUN: Tangent Sigmoid 微分
-def dsigmoid(x): 
-    return (1 - sigmoid(x)) * sigmoid(x)
+def dTangentSigmoid(x):
+    return 1 - np.power(np.tanh(x), 2)
 # FUN: 計算輸出層梯度
 def delta_output(Z, Y):
-    return (sigmoid(Z) - Y) * dsigmoid(Z)
+    return (TangentSigmoid(Z) - Y) * dTangentSigmoid(Z)
 # FUN: 計算隱藏層梯度
 def delta_hidden(Z, D, W):
-    return dsigmoid(Z) * np.dot(D, W)
+    return dTangentSigmoid(Z) * np.dot(D, W)
 # FUN: 倒傳遞
 def backward(Y, Z2, Z1):
     # 計算輸出層梯度
@@ -155,10 +155,6 @@ for e in range(1, epoch + 1):
         log = f'\
         error = {error} ({e}th epoch),\n \
         '
-        #W1:{lib.weights_L1},\n \
-        #W2:{lib.weights_L2},\n \
-        #b1{lib.bias_L1},\n \
-        #b2{lib.bias_L2}\
         print(log)
 
 ## 對預測結果進行反正規化
