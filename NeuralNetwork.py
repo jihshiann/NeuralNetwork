@@ -91,7 +91,7 @@ def update_paras(D2, X1, D1, X0):
     b2 = b2 - learning_rate * debias(D2)
     b1 = b1 - learning_rate * debias(D1)
 
-## 厩策
+## FUN: 厩策
 def train(X, Y):
     # タ肚冀
     Z1, X1, Z2, X2 = forward(X)
@@ -102,20 +102,20 @@ def train(X, Y):
     # 把计穝
     update_paras(D2, X1, D1, X)
 
-## 磅︽
 # FUN: 箇代
 def predict(X):
     # -1程
     ans = forward(X)[-1]
     return ans
 
-# FUN: ヘ夹ㄧ计
+# FUN: 璸衡粇畉
 def error_function(Y, X):
     # 1/2*error^2
     a = predict(X)
     return 0.5 * ((Y - a) ** 2).sum()
 
 
+## 磅︽
 ## DATA
 # 计沮计秖
 data_num = 12345
