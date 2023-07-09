@@ -6,15 +6,17 @@
 #> PS1: 撰寫類神經前請先產生你的資料集，建議要有10000筆以上，接著把這個資料集切開成訓練與測試資料集。
 #> PS2: 不管是輸入還是輸出都要正規化到0-1之間，而產出結果時，需要把輸出反正規化到原本的空間中。
 
+from itertools import repeat
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 # FUN: 初始值
-def init():
+def init(n):
     global W2, W1, b1, b2, neuron_num, learning_rate
     ## 類神經網路
     # 隱藏層神經元數
-    neuron_num = np.random.randint(2, 9)
+    neuron_num = n
 
     ## 權重與偏差
     W1 = np.random.randn(neuron_num, 2)
@@ -116,49 +118,86 @@ def error_function(Y, X):
 
 
 ## 執行
-## DATA
-# 數據數量
-data_num = 12345
-# 輸入值: (四位數, 四位數)陣列
-TX = (np.random.rand(data_num, 2)*9998).astype(np.int32)+1
-# 輸出值: 四位數 + 四位數 陣列
-TY = np.sum(TX, axis=1).reshape(-1, 1)
-# 對輸入和輸出進行正規化
-TX, min_inputs, range_inputs = standardize(TX)
-TY, min_expecteds, range_expecteds = standardize(TY)
+def exec(times, max_n):
+    # 保存每次訓練的誤差
+    diffs = []  
 
-# NN
-init()
+    # 重複訓練
+    for time in range(0, times):
+        ## DATA
+        # 數據數量
+        data_num = 30000
+        # 輸入值: (四位數, 四位數)陣列
+        total_X = (np.random.rand(data_num, 2)*9998).astype(np.int32)+1
+        # 輸出值: 四位數 + 四位數 陣列
+        total_Y = np.sum(total_X, axis=1).reshape(-1, 1)
+        # 對輸入和輸出進行正規化
+        total_X, min_inputs, range_inputs = standardize(total_X)
+        total_Y, min_outputs, range_outputs = standardize(total_Y)
+        # 切成訓練與測試
+        train_ratio = 0.7
+        train_size = int(train_ratio * len(total_X))
+        train_X = total_X[:train_size]
+        train_Y = total_Y[:train_size]
+        test_X = total_X[train_size:]
+        test_Y = total_Y[train_size:]
 
-## 批次執行
-batch = 100
-epoch = 100
-for e in range(1, epoch + 1):
-    # 隨機打亂訓練資料的索引
-    p = np.random.permutation(len(TX))
+        for n in range(1, max_n+1):
+            # NN
+            init(n)
 
-    # 遍歷每個batch
-    for i in range(math.ceil(len(TX) / batch)):
-        # 取出當前batch的索引範圍
-        indice = p[i * batch:(i + 1) * batch]
+            ## 批次執行
+            batch = 30
+            epoch = 30
+            for e in range(0, epoch):
+                # 隨機打亂訓練資料的索引
+                p = np.random.permutation(len(train_X))
 
-        # 根據索引範圍從原始資料中取出對應的batch資料
-        X0 = TX[indice]
-        Y = TY[indice]
+                # 遍歷每個batch
+                for i in range(math.ceil(len(train_X) / batch)):
+                    # 取出當前batch的索引範圍
+                    indice = p[i * batch:(i + 1) * batch]
 
-        # 使用當前batch資料進行模型訓練
-        train(X0, Y)
+                    # 根據索引範圍從原始資料中取出對應的batch資料
+                    X = train_X[indice]
+                    Y = train_Y[indice]
 
-    # 輸出訓練誤差
-    if e % 1 == 0:
-        error = error_function(TY, TX)
-        log = f'\
-        error = {error} ({e}th epoch),\n \
-        '
-        print(log)
+                    # 使用當前batch資料進行模型訓練
+                    train(X, Y)
 
-## 對預測結果進行反正規化
-predicted_output = unstandardize(predict(TX), min_expecteds, range_expecteds)
-origin_TY = unstandardize(TY, min_expecteds, range_expecteds)
-mean_diff = np.mean(np.abs(predicted_output - origin_TY))
-print(mean_diff)
+                 # 輸出訓練誤差
+                if e % 3 == 0:
+                    error = error_function(train_Y, train_X)
+                    log = f'\
+                    time = {time}, n = {n}, error = {error} ({e}th epoch),\n \
+                    '
+                    print(log)
+      
+            ## 對預測結果進行反正規化
+            predicted_outputs = unstandardize(predict(test_X), min_outputs, range_outputs)
+            origin_outputs = unstandardize(test_Y, min_outputs, range_outputs)
+            ## 記錄誤差
+            mean_diff = np.mean(np.abs(predicted_outputs - origin_outputs))
+            if len(diffs) < n:
+                diffs.append(mean_diff)
+            else:
+                diffs[n-1] += mean_diff
+    return diffs
+
+times = 30
+max_n = 30
+diffs = exec(times, max_n)
+mean_diffs = [diff / times for diff in diffs]
+
+
+### 繪圖
+n_list = list(range(1, max_n+1))
+plt.plot(n_list, mean_diffs)
+plt.xlabel('Number of Neurons')
+plt.ylabel('Mean Diff')
+plt.title('Number of Neurons vs. Mean Diff')
+plt.show()
+print('end')
+
+
+
