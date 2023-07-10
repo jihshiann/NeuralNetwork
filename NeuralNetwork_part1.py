@@ -10,9 +10,10 @@ import Library as NN
 import matplotlib.pyplot as plt
 
 ## °õ¦æ
-times = 30
-max_n = 30
-diffs = NN.exec(times, max_n)
+times = 3
+max_n = 5
+stage = 1
+diffs = NN.exec(stage, times, max_n)
 mean_diffs = [diff / times for diff in diffs]
 
 

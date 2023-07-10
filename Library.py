@@ -15,6 +15,47 @@ def init(n):
     b2 = np.random.randn(1)
     learning_rate = 0.001
 
+# FUN: 產生數據
+def generateData(stage):
+    if stage == 1:
+        ## DATA
+        # 數據數量
+        data_num = 30000
+        # 輸入值: (四位數, 四位數)陣列
+        X = np.random.randint(1111, 9999+1, size=(data_num, 2))
+        # 輸出值: 四位數 + 四位數 陣列
+        Y = np.sum(X, axis=1).reshape(-1, 1)
+
+    if stage == 2:
+        ## DATA
+        # 數據數量
+        data_num = 10000
+
+        # 輸入值: ([-0.5, 0.2]或[0.8, 1.5]兩個區塊中)二維陣列
+        X = np.random.uniform(-1, 1, size=(data_num, 2))
+        X[X >= 0] = 0.7 * X[X >= 0] + 0.8
+        X[X < 0] = 0.7 * X[X < 0] + 0.2
+        bool_X = np.copy(X)
+        bool_X[X >= 0.8] = 1
+        bool_X[X < 0.8] = 0
+
+        # 輸出: 1或0
+        Y = np.where(bool_X[:, 0] == bool_X[:, 1], 0, 1).reshape(-1, 1)
+
+    # 對輸入和輸出進行正規化
+    X, min_inputs, range_inputs = standardize(X)
+    Y, min_outputs, range_outputs = standardize(Y)
+    # 切成訓練與測試
+    train_ratio = 0.7
+    train_size = int(train_ratio * len(X))
+    train_X = X[:train_size]
+    train_Y = Y[:train_size]
+    test_X = X[train_size:]
+    test_Y = Y[train_size:]
+    
+
+    return train_X, train_Y, test_X, test_Y, min_inputs, min_outputs,range_inputs, range_outputs
+
 # FUN: 正規化
 def standardize(numArray):
     # 正規化至0到1之間
@@ -108,37 +149,21 @@ def error_function(Y, X):
 
 
 ## 執行
-def exec(times, max_n):
+def exec(stage, times, max_n):
     # 保存每次訓練的誤差
     diffs = []  
-
+    min_n = stage
     # 重複訓練
     for time in range(0, times):
-        ## DATA
-        # 數據數量
-        data_num = 30000
-        # 輸入值: (四位數, 四位數)陣列
-        total_X = (np.random.rand(data_num, 2)*9998).astype(np.int32)+1
-        # 輸出值: 四位數 + 四位數 陣列
-        total_Y = np.sum(total_X, axis=1).reshape(-1, 1)
-        # 對輸入和輸出進行正規化
-        total_X, min_inputs, range_inputs = standardize(total_X)
-        total_Y, min_outputs, range_outputs = standardize(total_Y)
-        # 切成訓練與測試
-        train_ratio = 0.7
-        train_size = int(train_ratio * len(total_X))
-        train_X = total_X[:train_size]
-        train_Y = total_Y[:train_size]
-        test_X = total_X[train_size:]
-        test_Y = total_Y[train_size:]
+        train_X, train_Y, test_X, test_Y, min_inputs, min_outputs,range_inputs, range_outputs = generateData(stage)
 
-        for n in range(1, max_n+1):
+        for n in range(min_n, max_n+1):
             # NN
             init(n)
 
             ## 批次執行
-            batch = 30
-            epoch = 30
+            batch = 100
+            epoch = 100
             for e in range(0, epoch):
                 # 隨機打亂訓練資料的索引
                 p = np.random.permutation(len(train_X))
@@ -156,20 +181,30 @@ def exec(times, max_n):
                     train(X, Y)
 
                  # 輸出訓練誤差
-                if e % 3 == 0:
+                if e % 10 == 0:
                     error = error_function(train_Y, train_X)
                     log = f'\
                     time = {time}, n = {n}, error = {error} ({e}th epoch),\n \
                     '
                     print(log)
-      
-            ## 對預測結果進行反正規化
-            predicted_outputs = unstandardize(predict(test_X), min_outputs, range_outputs)
-            origin_outputs = unstandardize(test_Y, min_outputs, range_outputs)
-            ## 記錄誤差
-            mean_diff = np.mean(np.abs(predicted_outputs - origin_outputs))
-            if len(diffs) < n:
-                diffs.append(mean_diff)
+            if stage == 1:
+                ## 預測並反正規化
+                predicted_outputs = unstandardize(predict(test_X), min_outputs, range_outputs)
+                origin_outputs = unstandardize(test_Y, min_outputs, range_outputs)
+                ## 記錄誤差
+                mean_diff = np.mean(np.abs(predicted_outputs - origin_outputs))
+                if len(diffs) < n:
+                    diffs.append(mean_diff)
+                else:
+                    diffs[n-1] += mean_diff
             else:
-                diffs[n-1] += mean_diff
+                # 預測並分類
+                std_preds, min_preds, range_preds = standardize(predict(test_X))
+                classify_preds = np.where(std_preds <= 0.5, 0, 1)
+                ## 記錄誤差
+                mean_diff = np.mean(np.abs(classify_preds - test_Y))
+                if len(diffs) < n:
+                    diffs.append(mean_diff)
+                else:
+                    diffs[n-1] += mean_diff
     return diffs
