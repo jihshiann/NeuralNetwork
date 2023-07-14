@@ -8,12 +8,14 @@
 
 import Library as NN
 import matplotlib.pyplot as plt
+import imageio
 
 ## °õ¦æ
 times = 3
 max_n = 5
 stage = 1
-diffs = NN.exec(stage, times, max_n)
+epoch = 100
+diffs = NN.exec(stage, times, max_n, epoch)
 mean_diffs = [diff / times for diff in diffs]
 
 
@@ -25,6 +27,8 @@ plt.ylabel('Mean Diff')
 plt.title('Number of Neurons vs. Mean Diff')
 plt.show()
 print('end')
+
+
 
 
 

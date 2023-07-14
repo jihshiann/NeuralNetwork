@@ -8,22 +8,25 @@
 
 import Library as NN
 import matplotlib.pyplot as plt
+import imageio
+import os
 
 ## 執行
-times = 2
+times = 1
 max_n = 2
 stage = 2
-diffs = NN.exec(stage, times, max_n)
-mean_diffs = [diff / times for diff in diffs]
+epoch = 100
+NN.exec(stage, times, max_n, epoch)
 
+# 將圖片組合為GIF動畫
+images = []
+for e in range(epoch):
+    images.append(imageio.imread(f'epoch_{e+1}.png'))
+    #. `fps=50` == `duration=20` (1000 * 1/50).
+    imageio.mimsave('dynamic_visualization.gif', images, duration=20)
 
-## 繪圖
-n_list = list(range(1, max_n+1))
-plt.plot(n_list, mean_diffs)
-plt.xlabel('Number of Neurons')
-plt.ylabel('Mean Diff')
-plt.title('Number of Neurons vs. Mean Diff')
-plt.show()
+for e in range(epoch):
+    os.remove(f'epoch_{e+1}.png')
 print('end')
 
 

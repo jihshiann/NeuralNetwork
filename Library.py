@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import matplotlib.pyplot as plt
+
 
 # FUN: 初始值
 def init(n):
@@ -149,10 +151,12 @@ def error_function(Y, X):
 
 
 ## 執行
-def exec(stage, times, max_n):
+def exec(stage, times, max_n, epoch):
     # 保存每次訓練的誤差
     diffs = []  
     min_n = stage
+    epoch_list = []
+
     # 重複訓練
     for time in range(0, times):
         train_X, train_Y, test_X, test_Y, min_inputs, min_outputs,range_inputs, range_outputs = generateData(stage)
@@ -163,7 +167,6 @@ def exec(stage, times, max_n):
 
             ## 批次執行
             batch = 100
-            epoch = 100
             for e in range(0, epoch):
                 # 隨機打亂訓練資料的索引
                 p = np.random.permutation(len(train_X))
@@ -180,31 +183,47 @@ def exec(stage, times, max_n):
                     # 使用當前batch資料進行模型訓練
                     train(X, Y)
 
-                 # 輸出訓練誤差
-                if e % 10 == 0:
-                    error = error_function(train_Y, train_X)
-                    log = f'\
-                    time = {time}, n = {n}, error = {error} ({e}th epoch),\n \
-                    '
-                    print(log)
-            if stage == 1:
-                ## 預測並反正規化
-                predicted_outputs = unstandardize(predict(test_X), min_outputs, range_outputs)
-                origin_outputs = unstandardize(test_Y, min_outputs, range_outputs)
-                ## 記錄誤差
-                mean_diff = np.mean(np.abs(predicted_outputs - origin_outputs))
-                if len(diffs) < n:
+                 
+                if stage == 1:
+                    # 輸出訓練誤差
+                    if e % 10 == 0:
+                        error = error_function(train_Y, train_X)
+                        log = f'\
+                        time = {time}, n = {n}, error = {error} ({e}th epoch),\n \
+                        '
+                        print(log)
+                    ## 預測並反正規化
+                    predicted_outputs = unstandardize(predict(test_X), min_outputs, range_outputs)
+                    origin_outputs = unstandardize(test_Y, min_outputs, range_outputs)
+                    ## 記錄誤差
+                    mean_diff = np.mean(np.abs(predicted_outputs - origin_outputs))
+                    if len(diffs) < n:
+                        diffs.append(mean_diff)
+                    else:
+                        diffs[n-1] += mean_diff
+
+                if stage == 2:
+                    # 預測並分類
+                    std_preds, min_preds, range_preds = standardize(predict(test_X))
+                    classify_preds = np.where(std_preds <= 0.5, 0, 1)
+                    ## 記錄誤差
+                    mean_diff = np.mean(np.abs(classify_preds - test_Y))
+                    ##print(mean_diff)  
+                    # 添加至視覺化列表
+                    epoch_list.append(e + 1)
                     diffs.append(mean_diff)
-                else:
-                    diffs[n-1] += mean_diff
-            else:
-                # 預測並分類
-                std_preds, min_preds, range_preds = standardize(predict(test_X))
-                classify_preds = np.where(std_preds <= 0.5, 0, 1)
-                ## 記錄誤差
-                mean_diff = np.mean(np.abs(classify_preds - test_Y))
-                if len(diffs) < n:
-                    diffs.append(mean_diff)
-                else:
-                    diffs[n-1] += mean_diff
+
+                    # 繪製並保存圖片
+                    plt.plot(epoch_list, diffs, '-o')
+                    plt.xlabel('Epoch')
+                    plt.ylabel('Mean Difference')
+                    plt.title('Mean Difference vs. Epoch')
+                    plt.xlim(1, epoch)
+                    plt.ylim(0, 1)
+                    # 加入每個點的標籤
+                    #for x, y in zip(epoch_list, diffs):
+                    #    plt.text(x, y, f'{y:.2f}', ha='center', va='bottom')
+                    plt.savefig(f'epoch_{len(epoch_list)}.png')
+                    plt.close()
+                
     return diffs
