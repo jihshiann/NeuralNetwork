@@ -106,24 +106,24 @@ def backward(Y, Z2, Z1):
 
     return D2, D1
 
-# FUN: 目標函數對權重微分
-def deweight(D, X):
+# FUN: 計算目標函數對權重的梯度
+def computeWeight(D, X):
     return np.dot(D.T, X)
 
-# FUN: 目標函數對偏差微分
-def debias(D):
+# FUN: 計算目標函數對偏差的梯度
+def computeBias(D):
     return D.sum(axis=0)
 
 # FUN: 參數更新
 def update_paras(D2, X1, D1, X0):
     global W2, W1, b1, b2, neuron_num, learning_rate
     # 更新權重
-    W2 = W2 - learning_rate * deweight(D2, X1)
-    W1 = W1 - learning_rate * deweight(D1, X0)
+    W2 = W2 - learning_rate * computeWeight(D2, X1)
+    W1 = W1 - learning_rate * computeWeight(D1, X0)
 
     # 更新偏差
-    b2 = b2 - learning_rate * debias(D2)
-    b1 = b1 - learning_rate * debias(D1)
+    b2 = b2 - learning_rate * computeBias(D2)
+    b1 = b1 - learning_rate * computeBias(D1)
 
 ## FUN: 學習
 def train(X, Y):
