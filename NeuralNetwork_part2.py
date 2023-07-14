@@ -22,8 +22,9 @@ NN.exec(stage, times, max_n, epoch)
 images = []
 for e in range(epoch):
     images.append(imageio.imread(f'epoch_{e+1}.png'))
-    #. `fps=50` == `duration=20` (1000 * 1/50).
-    imageio.mimsave('dynamic_visualization.gif', images, duration=20)
+    
+#. `fps=50` == `duration=20` (1000 * 1/50). 
+imageio.mimsave('dynamic_visualization.gif', images, duration=20)   
 
 for e in range(epoch):
     os.remove(f'epoch_{e+1}.png')

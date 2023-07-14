@@ -55,7 +55,6 @@ def generateData(stage):
     test_X = X[train_size:]
     test_Y = Y[train_size:]
     
-
     return train_X, train_Y, test_X, test_Y, min_inputs, min_outputs,range_inputs, range_outputs
 
 # FUN: ¥¿³W¤Æ
