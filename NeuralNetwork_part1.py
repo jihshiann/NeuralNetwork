@@ -8,7 +8,6 @@
 
 import Library as NN
 import matplotlib.pyplot as plt
-import imageio
 
 ## °õ¦æ
 times = 3
