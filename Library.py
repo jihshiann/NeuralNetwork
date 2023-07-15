@@ -24,7 +24,7 @@ def generateData(stage):
         # 计沮计秖
         data_num = 30000
         # 块: (计, 计)皚
-        X = np.random.randint(1111, 9999+1, size=(data_num, 2))
+        X = np.random.randint(1000, 9999+1, size=(data_num, 2))
         # 块: 计 + 计 皚
         Y = np.sum(X, axis=1).reshape(-1, 1)
 
