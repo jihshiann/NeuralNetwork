@@ -203,8 +203,8 @@ def exec(stage, times, max_n, epoch):
 
                 if stage == 2:
                     # 預測並分類
-                    std_preds, min_preds, range_preds = standardize(predict(test_X))
-                    classify_preds = np.where(std_preds <= 0.5, 0, 1)
+                    preds = predict(test_X)
+                    classify_preds = np.where(preds <= 0.5, 0, 1)
                     ## 記錄誤差
                     mean_diff = np.mean(np.abs(classify_preds - test_Y))
                     ##print(mean_diff)  
