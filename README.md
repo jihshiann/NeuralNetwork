@@ -24,9 +24,7 @@
 1. 每個虛擬資料最後屬於哪個類別則由XOR邏輯決定。
 > PS1: 類神經的輸入是x與y的數值，輸出則是一個數值，若此數值小於等於0.5，則被分到第1類，反之若大於0.5，則被分到第2類。<br>這個類神經的輸入與輸出都要先完成正規化後才能開始類神經的訓練<br>
 > PS2: 請把每次訓練的參數結果視覺化呈現出來(能做成動態更佳，如下面的影片所示)，並嘗試解讀這樣的視覺化結果 <br>
-
-
-<video src="https://github.com/jihshiann/NeuralNetwork/blob/main/%E5%8B%95%E6%85%8B%E8%A6%96%E8%A6%BA%E7%AF%84%E4%BE%8B.mp4" width="640" height="360" controls></video>
+[動態視覺範例.mp4](https://github.com/jihshiann/NeuralNetwork/blob/main/%E5%8B%95%E6%85%8B%E8%A6%96%E8%A6%BA%E7%AF%84%E4%BE%8B.mp4)
 <br>
 <br>
 <br>
@@ -70,10 +68,10 @@ M --> A
 > 輸入 = 兩介於[-0.5. 0.2] 或 [0.8, 1.5數字]、輸出 = 1或0 <br>
 > 正規化 => (輸入-最小值)/(最大值-最小值) <br>
 > Activation Function => f(x) = (exp(x) - exp(-x)) / (exp(x) + exp(-x))<br>
-> 分類: Y = 0; if Y <= 0.5| Y=1; else
+> 分類: Y = 0; if Y <= 0.5 | Y=1; else
 <br>
 
-3. 執行流程
+2. 執行流程
 ```mermaid
 graph TB
 A[生成數據] --> B[正規化數據]
@@ -88,5 +86,5 @@ H --> |否| L[繼續下個Epoch]
 L --> E
 ```
 3. 訓練結果 <br>
-![image](階段2結果.gif)
+![image](第二階段結果視覺化.gif)
 
