@@ -1,33 +1,53 @@
-## ²Ä¤@¶¥¬q-¼¶¼g¤@­Ó2-n-1ªº²L¼hÃş¯«¸gºô¸ô
-#1. ÁôÂÃ¼hªº¯«¸g¤¸¨Ï¥ÎTangent Sigmoid§@¬°¿E¬¡¨ç¼Æ
-#2. ¿é¥X¼h¬°½u©Ê¨ç¼Æ
-#3. Ãş¯«¸gºô¸ôªº¿é¤J¬°¨â­Ó¥|¦ì¼Æªº¼Æ­È¡A¿é¥X«h¬°³o¨â­Ó¼ÆªºÁ`©M
-#4. ½Õ¾ã§AªºÁôÂÃ¼h¯«¸g¤¸¼Æ¶q¡A¨Ãµe¥X¤@±i¯«¸g¤¸¼Æ¶q¹ï30¦¸°V½mµ²ªG¤§»~®t¥­§¡ªº¹Ï¡C
-#> PS1: ¼¶¼gÃş¯«¸g«e½Ğ¥ı²£¥Í§Aªº¸ê®Æ¶°¡A«ØÄ³­n¦³10000µ§¥H¤W¡A±µµÛ§â³o­Ó¸ê®Æ¶°¤Á¶}¦¨°V½m»P´ú¸Õ¸ê®Æ¶°¡C
-#> PS2: ¤£ºŞ¬O¿é¤JÁÙ¬O¿é¥X³£­n¥¿³W¤Æ¨ì0-1¤§¶¡¡A¦Ó²£¥Xµ²ªG®É¡A»İ­n§â¿é¥X¤Ï¥¿³W¤Æ¨ì­ì¥»ªºªÅ¶¡¤¤¡C
+## ç¬¬ä¸€éšæ®µ-æ’°å¯«ä¸€å€‹2-n-1çš„æ·ºå±¤é¡ç¥ç¶“ç¶²è·¯
+#1. éš±è—å±¤çš„ç¥ç¶“å…ƒä½¿ç”¨Tangent Sigmoidä½œç‚ºæ¿€æ´»å‡½æ•¸
+#2. è¼¸å‡ºå±¤ç‚ºç·šæ€§å‡½æ•¸
+#3. é¡ç¥ç¶“ç¶²è·¯çš„è¼¸å…¥ç‚ºå…©å€‹å››ä½æ•¸çš„æ•¸å€¼ï¼Œè¼¸å‡ºå‰‡ç‚ºé€™å…©å€‹æ•¸çš„ç¸½å’Œ
+#4. èª¿æ•´ä½ çš„éš±è—å±¤ç¥ç¶“å…ƒæ•¸é‡ï¼Œä¸¦ç•«å‡ºä¸€å¼µç¥ç¶“å…ƒæ•¸é‡å°30æ¬¡è¨“ç·´çµæœä¹‹èª¤å·®å¹³å‡çš„åœ–ã€‚
+#> PS1: æ’°å¯«é¡ç¥ç¶“å‰è«‹å…ˆç”¢ç”Ÿä½ çš„è³‡æ–™é›†ï¼Œå»ºè­°è¦æœ‰10000ç­†ä»¥ä¸Šï¼Œæ¥è‘—æŠŠé€™å€‹è³‡æ–™é›†åˆ‡é–‹æˆè¨“ç·´èˆ‡æ¸¬è©¦è³‡æ–™é›†ã€‚
+#> PS2: ä¸ç®¡æ˜¯è¼¸å…¥é‚„æ˜¯è¼¸å‡ºéƒ½è¦æ­£è¦åŒ–åˆ°0-1ä¹‹é–“ï¼Œè€Œç”¢å‡ºçµæœæ™‚ï¼Œéœ€è¦æŠŠè¼¸å‡ºåæ­£è¦åŒ–åˆ°åŸæœ¬çš„ç©ºé–“ä¸­ã€‚
 
 import Library as NN
 import matplotlib.pyplot as plt
+import numpy as np
 
-## °õ¦æ
-times = 3
-max_n = 5
+## åŸ·è¡Œ
+times = 30
+max_n = 20
 stage = 1
 epoch = 100
-diffs = NN.exec(stage, times, max_n, epoch)
-mean_diffs = [diff / times for diff in diffs]
+diffs, errors = NN.exec(stage, times, max_n, epoch)
+mean_diffs = [diff /epoch / times for diff in diffs] 
+errors /= times
 
-
-## Ã¸¹Ï
+## ç¹ªåœ–
 n_list = list(range(1, max_n+1))
-plt.plot(n_list, mean_diffs)
+line = plt.plot(n_list, mean_diffs)
+plt.setp(line, linewidth=3, marker = '.', markersize=9)
 plt.xlabel('Number of Neurons')
 plt.ylabel('Mean Diff')
-plt.title('Number of Neurons vs. Mean Diff')
-plt.show()
+title = 'Number of Neurons vs. Mean Diff'
+plt.title(title)
+plt.xticks(range(1, max_n+1))
+plt.savefig(f'' + title + '.png', dpi=300)
+
+plt.figure()
+
+for neural in range(1, max_n+1):
+    if (neural%5==1 ) | (neural%max_n==0):
+        line = plt.plot(range(10, epoch), errors[neural][10:epoch], label=f'Neural = {neural}')
+        plt.setp(line, linewidth=1, marker = '.', markersize=2, markevery=10)
+
+plt.xlabel('Epoch')
+plt.ylabel('Error')
+title = 'Epoch vs. Error'
+plt.title(title)
+plt.xticks(range(10, epoch+1, 10))
+plt.legend()
+plt.savefig(f'' + title + '.png', dpi=3000)
+
 print('end')
 
 
 
 
-
+ 

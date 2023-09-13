@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 # FUN: 初始值
 def init(n):
     global W2, W1, b1, b2, neuron_num, learning_rate
+    np.random.seed(0)
     ## 類神經網路
     # 隱藏層神經元數
     neuron_num = n
@@ -155,10 +156,11 @@ def exec(stage, times, max_n, epoch):
     diffs = []  
     min_n = stage
     epoch_list = []
+    errors = np.zeros((max_n+1, epoch))
+    train_X, train_Y, test_X, test_Y, min_inputs, min_outputs,range_inputs, range_outputs = generateData(stage)
 
     # 重複訓練
     for time in range(0, times):
-        train_X, train_Y, test_X, test_Y, min_inputs, min_outputs,range_inputs, range_outputs = generateData(stage)
 
         for n in range(min_n, max_n+1):
             # NN
@@ -185,8 +187,8 @@ def exec(stage, times, max_n, epoch):
                  
                 if stage == 1:
                     # 輸出訓練誤差
-                    if e % 10 == 0:
-                        error = error_function(train_Y, train_X)
+                    error = error_function(train_Y, train_X)
+                    if e%10==1:
                         log = f'\
                         time = {time}, n = {n}, error = {error} ({e}th epoch),\n \
                         '
@@ -200,6 +202,8 @@ def exec(stage, times, max_n, epoch):
                         diffs.append(mean_diff)
                     else:
                         diffs[n-1] += mean_diff
+                    # lose
+                    errors[n][e] += error
 
                 if stage == 2:
                     # 預測並分類
@@ -225,4 +229,4 @@ def exec(stage, times, max_n, epoch):
                     plt.savefig(f'epoch_{len(epoch_list)}.png')
                     plt.close()
                 
-    return diffs
+    return diffs, errors
