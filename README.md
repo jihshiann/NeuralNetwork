@@ -33,7 +33,7 @@
 # 結果
 ## 第一階段
 1. 參數: <br>
-> 隱藏層神經元個數 = 1~30、學習率 = 0.1% <br>
+> 隱藏層神經元個數 = 1~20、學習率 = 0.1% <br>
 > Epoch = 100、訓練次數 = 30 <br>
 > 生成數據量 = 30000、訓練集/測試集比例 = 70%/30% <br>
 > 輸入 = 兩四位數字整數、輸出 = 輸入相加 <br>
@@ -58,7 +58,11 @@ I --> |否| M[開啟新的一輪訓練]
 M --> A
 ```
 3. 訓練結果 <br>
+
+![image](https://github.com/jihshiann/NeuralNetwork/assets/41182558/3a5a46b9-656d-4cfb-ac92-59f4b16e114c)
 ![image](第一階段結果視覺化.png)
+![image](https://github.com/jihshiann/NeuralNetwork/assets/41182558/a42880f8-21ca-486c-a728-e1d04fcbef1e)
+
 <br>
 
 ## 第二階段
