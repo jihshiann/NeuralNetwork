@@ -92,4 +92,4 @@ L --> E
 ```
 3. 訓練結果 <br>
 ![image](第二階段結果動態視覺化.gif)
-
+![image](https://github.com/jihshiann/NeuralNetwork/blob/main/epoch_value_dynamic_visualization.gif)
