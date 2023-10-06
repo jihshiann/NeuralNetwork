@@ -153,7 +153,7 @@ def error_function(Y, X):
 ## 執行
 def exec(stage, times, max_n, epoch):
     # 保存每次訓練的誤差
-    diffs = []  
+    mean_diffs = []  
     min_n = stage
     epoch_list = []
     errors = np.zeros((max_n+1, epoch))
@@ -167,7 +167,7 @@ def exec(stage, times, max_n, epoch):
             init(n)
 
             ## 批次執行
-            batch = 100
+            batch = 1
             for e in range(0, epoch):
                 # 隨機打亂訓練資料的索引
                 p = np.random.permutation(len(train_X))
@@ -198,10 +198,10 @@ def exec(stage, times, max_n, epoch):
                     origin_outputs = unstandardize(test_Y, min_outputs, range_outputs)
                     ## 記錄誤差
                     mean_diff = np.mean(np.abs(predicted_outputs - origin_outputs))
-                    if len(diffs) < n:
-                        diffs.append(mean_diff)
+                    if len(mean_diffs) < n:
+                        mean_diffs.append(mean_diff)
                     else:
-                        diffs[n-1] += mean_diff
+                        mean_diffs[n-1] += mean_diff
                     # lose
                     errors[n][e] += error
 
@@ -211,13 +211,15 @@ def exec(stage, times, max_n, epoch):
                     classify_preds = np.where(preds <= 0.5, 0, 1)
                     ## 記錄誤差
                     mean_diff = np.mean(np.abs(classify_preds - test_Y))
+                    mean_pred = np.mean(classify_preds)
+                    mean_ans = np.mean(test_Y)
                     ##print(mean_diff)  
                     # 添加至視覺化列表
                     epoch_list.append(e + 1)
-                    diffs.append(mean_diff)
-
+                    current_epoch = len(epoch_list)
+                    mean_diffs.append(mean_diff)
                     # 繪製並保存圖片
-                    plt.plot(epoch_list, diffs, '-o')
+                    plt.plot(epoch_list, mean_diffs, '-o')
                     plt.xlabel('Epoch')
                     plt.ylabel('Mean Difference')
                     plt.title('Mean Difference vs. Epoch')
@@ -226,7 +228,21 @@ def exec(stage, times, max_n, epoch):
                     # 加入每個點的標籤
                     #for x, y in zip(epoch_list, diffs):
                     #    plt.text(x, y, f'{y:.2f}', ha='center', va='bottom')
-                    plt.savefig(f'epoch_{len(epoch_list)}.png')
+                    plt.savefig(f'epoch_diff_{current_epoch}.png')
+                    plt.close()
+
+                    # 第二張圖: preds vs. Epoch
+                    preds = preds.ravel().tolist()
+                    x_values = [epoch_list[current_epoch-1]] * len(preds)
+                    plt.figure(figsize=(10.0, 10.0)) #10.0 6.0
+                    plt.scatter(x_values, preds, s=3.6, label='pred')#36
+                    plt.xlabel('Epoch')
+                    plt.ylabel('Pred')
+                    plt.title('Pred vs. Epoch')
+                    plt.xlim(1, epoch)
+                    plt.ylim(0, 1)
+                    plt.legend()
+                    plt.savefig(f'epoch_value_{current_epoch}.png', dpi=400)#200
                     plt.close()
                 
-    return diffs, errors
+    return mean_diffs, errors

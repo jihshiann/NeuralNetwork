@@ -19,15 +19,19 @@ epoch = 100
 NN.exec(stage, times, max_n, epoch)
 
 # 將圖片組合為GIF動畫
-images = []
+images_diff = []
+images_value = []
 for e in range(epoch):
-    images.append(imageio.imread(f'epoch_{e+1}.png'))
+    images_diff.append(imageio.imread(f'epoch_diff_{e+1}.png'))
+    images_value.append(imageio.imread(f'epoch_value_{e+1}.png'))
     
 #. `fps=50` == `duration=20` (1000 * 1/50). 
-imageio.mimsave('dynamic_visualization.gif', images, duration=20)   
+imageio.mimsave('epoch_diff_dynamic_visualization.gif', images_diff, duration=50)   
+imageio.mimsave('epoch_value_dynamic_visualization.gif', images_value, duration=50)  
 
 for e in range(epoch):
-    os.remove(f'epoch_{e+1}.png')
+    os.remove(f'epoch_diff_{e+1}.png')
+    os.remove(f'epoch_value_{e+1}.png')
 print('end')
 
 
